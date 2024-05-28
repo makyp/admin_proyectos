@@ -94,11 +94,11 @@ class Mensaje:
         self.destinatario = destinatario
         self.contenido = contenido
         self.fecha = fecha
-    
+
     def formato_doc(self):
         return {
-            'remitente': self.remitente.formato_doc(),
-            'destinatario': self.destinatario.formato_doc(),
+            'remitente': self.remitente,
+            'destinatario': self.destinatario,
             'contenido': self.contenido,
-            'fecha': self.fecha,
+            'fecha': self.fecha.isoformat()
         }

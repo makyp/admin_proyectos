@@ -1,3 +1,4 @@
+import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson import ObjectId
@@ -41,24 +42,27 @@ def login():
 
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
-    if request.method == 'POST':
-        nombre = request.form['nombre']
-        apellido = request.form['apellido']
-        correo = request.form['correo']
-        passwordsin = request.form['password']
-        role = request.form['role']
-        cargo = request.form['cargo']
-        habilidades = request.form['habilidades'].split(',')
-        
-        if usuarios_collection.find_one({'correo': correo}):
-            flash('El correo ya está registrado.')
-        else:
-            password = generate_password_hash(passwordsin)
-            nuevo_usuario = Usuario(nombre, apellido, correo, password, role, cargo, habilidades)
-            usuarios_collection.insert_one(nuevo_usuario.formato_doc())
-            flash('Registro exitoso. Ahora puedes iniciar sesión.')
-            return redirect(url_for('login'))
-    return render_template('inicio_sesion/registro.html')
+    if 'correo' in session and session.get('role') == 'admin':
+        if request.method == 'POST':
+            nombre = request.form['nombre']
+            apellido = request.form['apellido']
+            correo = request.form['correo']
+            passwordsin = request.form['password']
+            role = request.form['role']
+            cargo = request.form['cargo']
+            habilidades = request.form['habilidades'].split(',')
+            if usuarios_collection.find_one({'correo': correo}):
+                flash('El correo ya está registrado.')
+            else:
+                password = generate_password_hash(passwordsin)
+                nuevo_usuario = Usuario(nombre, apellido, correo, password, role, cargo, habilidades)
+                usuarios_collection.insert_one(nuevo_usuario.formato_doc())
+                flash('Registro exitoso. Ahora puedes iniciar sesión.')
+                return redirect(url_for('home'))
+        return render_template('inicio_sesion/registro.html')
+    else:
+        flash('No tienes permisos para acceder a esta página.')
+        return redirect(url_for('home'))
 
 @app.route('/logout')
 def logout():
@@ -68,7 +72,7 @@ def logout():
 
 @app.route('/admin')
 def admin():
-    if 'correo' in session and session.get('role') == 'administrador':
+    if 'correo' in session and session.get('role') == 'admin':
         return 'Bienvenido al panel de administración.'
     else:
         flash('No tienes permisos para acceder a esta página.')
@@ -76,12 +80,11 @@ def admin():
     
 @app.route('/admin_proyectos', methods=['GET', 'POST'])
 def admin_proyectos():
-    
     if 'correo' in session and session.get('role') == 'admin':
-        #Para ver los proyectos existentes
+        # Para ver los proyectos existentes
         proyectos = proyectos_collection.find()
-        
-        #Para agregar un nuevo proyecto
+
+        # Para agregar un nuevo proyecto
         if request.method == 'POST':
             nombre = request.form['nombre']
             descripcion = request.form['descripcion']
@@ -92,7 +95,24 @@ def admin_proyectos():
             proyectos_collection.insert_one(nuevo_proyecto.formato_doc())
             flash('Proyecto creado exitosamente.')
             return redirect(url_for('admin_proyectos'))
-        return render_template('admin/admin_proyectos.html', proyectos=proyectos)
+
+        # Convertir el cursor de proyectos en una lista para poder iterar sobre ella múltiples veces
+        lista_proyectos = list(proyectos)
+        
+        # Reemplazar el ID del miembro asignado por su nombre completo
+        for proyecto in lista_proyectos:
+            for tarea in proyecto.get('tareas', []):
+                miembro_id = tarea.get('miembroasignado')
+                if miembro_id:
+                    miembro = usuarios_collection.find_one({'_id': ObjectId(miembro_id)}, {'nombre': 1, 'apellido': 1})
+                    if miembro:
+                        tarea['miembroasignado'] = f"{miembro['nombre']} {miembro['apellido']}"
+                    else:
+                        tarea['miembroasignado'] = "Sin asignar"
+                else:
+                    tarea['miembroasignado'] = "Sin asignar"
+
+        return render_template('admin/admin_proyectos.html', proyectos=lista_proyectos)
     flash('No tienes permisos para realizar esta acción.')
     return redirect(url_for('home'))
 
@@ -307,6 +327,80 @@ def eliminar_tarea(id):
         return redirect(url_for('ver_todas_las_tareas'))
     flash('No tienes permisos para realizar esta acción.')
     return redirect(url_for('home'))
+
+@app.route('/perfil')
+def perfil():
+    if 'correo' in session:
+        usuario = usuarios_collection.find_one({'correo': session['correo']})
+        if usuario:
+            proyectos = proyectos_collection.find({'miembros': {'$elemMatch': {'correo': session['correo']}}})
+            tareas = tareas_collection.find({'miembroasignado': usuario['_id']})
+            return render_template('perfil.html', usuario=usuario, proyectos=proyectos, tareas=tareas)
+    flash('Debes iniciar sesión para ver tu perfil.')
+    return redirect(url_for('login'))
+
+@app.route('/tarea/<id>/comentarios', methods=['GET', 'POST'])
+def ver_comentarios(id):
+    if 'correo' in session:
+        tarea = tareas_collection.find_one({'_id': ObjectId(id)})
+        if request.method == 'POST':
+            contenido = request.form['contenido']
+            fecha = datetime.datetime.now()
+            comentario = Comentario(session['correo'], contenido, fecha)
+            tareas_collection.update_one(
+                {'_id': ObjectId(id)},
+                {'$push': {'comentarios': comentario.formato_doc()}}
+            )
+            flash('Comentario agregado exitosamente.')
+        comentarios = tarea.get('comentarios', [])
+        return render_template('comentarios.html', tarea=tarea, comentarios=comentarios)
+    flash('Debes iniciar sesión para ver los comentarios.')
+    return redirect(url_for('login'))
+
+@app.route('/responder_mensaje', methods=['POST'])
+def responder_mensaje():
+    if 'correo' in session:
+        destinatario = request.form['destinatario']
+        contenido = request.form['contenido']
+        fecha = datetime.datetime.now()
+        mensaje = Mensaje(session['correo'], destinatario, contenido, fecha)
+        usuarios_collection.update_one(
+            {'correo': destinatario},
+            {'$push': {'mensajes': mensaje.formato_doc()}}
+        )
+        flash('Respuesta enviada exitosamente.')
+        return redirect(url_for('ver_mensajes'))
+    flash('Debes iniciar sesión para responder mensajes.')
+    return redirect(url_for('login'))
+
+
+@app.route('/enviar_mensaje', methods=['GET', 'POST'])
+def enviar_mensaje():
+    if 'correo' in session:
+        if request.method == 'POST':
+            destinatario = request.form['destinatario']
+            contenido = request.form['contenido']
+            fecha = datetime.datetime.now()
+            mensaje = Mensaje(session['correo'], destinatario, contenido, fecha)
+            usuarios_collection.update_one(
+                {'correo': destinatario},
+                {'$push': {'mensajes': mensaje.formato_doc()}}
+            )
+            flash('Mensaje enviado exitosamente.')
+            return redirect(url_for('home'))
+        usuarios = usuarios_collection.find()
+        return render_template('enviar_mensaje.html', usuarios=usuarios)
+    flash('Debes iniciar sesión para enviar mensajes.')
+    return redirect(url_for('login'))
+
+@app.route('/mensajes')
+def ver_mensajes():
+    if 'correo' in session:
+        usuario = usuarios_collection.find_one({'correo': session['correo']})
+        mensajes = usuario.get('mensajes', [])
+        return render_template('mensajes.html', mensajes=mensajes)
+    flash('Debes iniciar sesión para ver tus mensajes.')
+    return redirect(url_for('login'))
 
 @app.route('/miembro')
 def miembro():

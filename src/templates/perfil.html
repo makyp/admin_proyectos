@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Usuario</title>
+</head>
+<body>
+    <h1>Perfil</h1>
+    <p><strong>Nombre completo:</strong>{{ usuario.nombre }} {{ usuario.apellido }}</p>
+    <p><strong>Correo:</strong> {{ usuario.correo }}</p>
+    <p><strong>Cargo:</strong> {{ usuario.cargo }}</p>
+    <p><strong>Habilidades:</strong> {{ ', '.join(usuario.habilidades) }}</p>
+
+    <h2>Proyectos</h2>
+    <ul>
+        {% for proyecto in proyectos %}
+            <li>{{ proyecto.nombre }} - {{ proyecto.descripcion }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Tareas Asignadas</h2>
+    <ul>
+        {% for tarea in tareas %}
+            <li>{{ tarea.nombre }} - {{ tarea.descripcion }} (Estado: {{ tarea.estado }})</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

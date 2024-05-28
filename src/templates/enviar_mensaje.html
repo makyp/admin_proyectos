@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Enviar Mensaje</title>
+</head>
+<body>
+    <h2>Enviar Mensaje</h2>
+    <form method="post">
+        <label for="destinatario">Destinatario:</label>
+        <select name="destinatario" required>
+            {% for usuario in usuarios %}
+                <option value="{{ usuario.correo }}">{{ usuario.nombre }} {{ usuario.apellido }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="contenido">Mensaje:</label>
+        <textarea name="contenido" required></textarea>
+        <br>
+        <button type="submit">Enviar</button>
+    </form>
+    <a href="{{ url_for('home') }}">Volver al Inicio</a>
+</body>
+</html>
+

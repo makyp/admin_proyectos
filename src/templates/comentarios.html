@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Comentarios</title>
+</head>
+<body>
+    <h2>Comentarios para la Tarea: {{ tarea.nombre }}</h2>
+    <ul>
+        {% for comentario in comentarios %}
+            <li>
+                <strong>{{ comentario.autor }}</strong>: {{ comentario.contenido }} <em>{{ comentario.fecha }}</em>
+            </li>
+        {% endfor %}
+    </ul>
+    <form method="post">
+        <textarea name="contenido" required></textarea>
+        <button type="submit">Agregar Comentario</button>
+    </form>
+    <a href="{{ url_for('ver_todas_las_tareas') }}">Volver a las Tareas</a>
+</body>
+</html>

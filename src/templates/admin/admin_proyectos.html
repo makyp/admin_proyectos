@@ -32,7 +32,13 @@
             <td>
                 <ul>
                     {% for tarea in proyecto.tareas %}
-                        <li>Nombre: {{tarea.nombre}} <br> Descripción:{{ tarea.descripcion }}<br>Responsable: {{tarea.miembroasignado}} </li>
+                        <li>Nombre: {{ tarea.nombre }} <br> Descripción: {{ tarea.descripcion }} <br> Responsable: 
+                            {% if tarea.miembroasignado %}
+                                {{ tarea.miembroasignado }}
+                            {% else %}
+                                Sin asignar
+                            {% endif %}
+                        </li>
                     {% endfor %}
                 </ul>
             </td>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mensajes</title>
+    <style>
+        .respuesta-form {
+            display: none; /* Oculta el formulario de respuesta por defecto */
+        }
+
+        .mostrar-respuesta {
+            cursor: pointer;
+            color: blue;
+        }
+    </style>
+    <script>
+        function mostrarRespuesta(formId) {
+            var respuestaForm = document.getElementById(formId);
+            respuestaForm.style.display = 'block'; // Muestra el formulario de respuesta
+        }
+    </script>
+</head>
+<body>
+    <h2>Mensajes</h2>
+    <ul>
+        {% for mensaje in mensajes %}
+            <li>
+                <strong>De {{ mensaje.remitente }}:</strong> {{ mensaje.contenido }} <em>{{ mensaje.fecha }}</em>
+                <!-- Mostrar el botón "Responder" -->
+                <button class="mostrar-respuesta" onclick="mostrarRespuesta('respuesta-form-{{ loop.index }}')">Responder</button>
+                <!-- Formulario de respuesta -->
+                <form id="respuesta-form-{{ loop.index }}" class="respuesta-form" action="{{ url_for('responder_mensaje') }}" method="post">
+                    <textarea name="contenido" placeholder="Escribe tu respuesta aquí..." required></textarea>
+                    <input type="hidden" name="destinatario" value="{{ mensaje.remitente }}">
+                    <button type="submit">Enviar</button>
+                </form>
+            </li>
+        {% endfor %}
+        {% for respuesta in respuestas %}
+            <li>
+                <strong>Para {{ respuesta.destinatario }}:</strong> {{ respuesta.contenido }} <em>{{ respuesta.fecha }}</em>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('home') }}">Volver al Inicio</a>
+</body>
+</html>
+
