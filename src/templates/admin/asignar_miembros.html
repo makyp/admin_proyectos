@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Asignar Miembros a Proyecto</title>
+</head>
+<body>
+    <h2>Asignar Miembros a Proyecto: {{ proyecto.nombre }}</h2>
+    
+    <h3>Miembros Asignados:</h3>
+    <form method="POST">
+        {% for miembro in proyecto.miembros %}
+            <input type="checkbox" name="eliminar_miembro" value="{{ miembro._id }}"> {{ miembro.nombre }} {{ miembro.apellido }} <br>
+        {% endfor %}
+        <input type="submit" value="Eliminar Miembros Seleccionados">
+    </form>
+    
+    <hr> 
+
+    <h3>Miembros Disponibles para Agregar:</h3>
+    <form method="POST">
+        {% for usuario in usuarios %}
+            {% if usuario not in proyecto.miembros %}
+                <input type="checkbox" name="agregar_miembro" value="{{ usuario._id }}"> {{ usuario.nombre }} {{ usuario.apellido }}<br>
+            {% endif %}
+        {% endfor %}
+        <input type="submit" value="Agregar Miembros">
+    </form>
+</body>
+</html>

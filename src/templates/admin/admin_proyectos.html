@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Proyectos</title>
+</head>
+<body>
+    <h2>Lista de Proyectos</h2>
+    <table border="1">
+        <tr>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Fecha de Inicio</th>
+            <th>Fecha de Finalización</th>
+            <th>Miembros</th>
+            <th>Tareas</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        {% for proyecto in proyectos %}
+        <tr>
+            <td>{{ proyecto.nombre }}</td>
+            <td>{{ proyecto.descripcion }}</td>
+            <td>{{ proyecto.fechainicio }}</td>
+            <td>{{ proyecto.fechafinal }}</td>
+            <td>
+                {% for miembro in proyecto.miembros %}
+                    {{ miembro.nombre }} {{ miembro.apellido }}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+            <td>
+                <ul>
+                    {% for tarea in proyecto.tareas %}
+                        <li>Nombre: {{tarea.nombre}} <br> Descripción:{{ tarea.descripcion }}<br>Responsable: {{tarea.miembroasignado}} </li>
+                    {% endfor %}
+                </ul>
+            </td>
+            <td>{{ proyecto.estado }}</td>
+            <td>
+                <a href="{{ url_for('editar_proyecto', id=proyecto._id) }}">Editar</a>
+                <a href="{{ url_for('eliminar_proyecto', id=proyecto._id) }}">Eliminar</a>
+                <a href="{{ url_for('asignar_miembros', id=proyecto._id) }}">Administrar Integrantes</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <h3>Agregar Nuevo Proyecto</h3>
+    <form method="POST">
+        <label for="nombre">Nombre:</label><br>
+        <input type="text" id="nombre" name="nombre" required><br>
+        <label for="descripcion">Descripción:</label><br>
+        <input type="text" id="descripcion" name="descripcion" required><br>
+        <label for="fechainicio">Fecha de Inicio:</label><br>
+        <input type="date" id="fechainicio" name="fechainicio" required><br>
+        <label for="fechafinal">Fecha de Finalización:</label><br>
+        <input type="date" id="fechafinal" name="fechafinal" required><br>
+        <label for="estado">Estado:</label><br>
+        <select id="estado" name="estado" required>
+            <option value="Por iniciar">Por iniciar</option>
+            <option value="En proceso">En proceso</option>
+            <option value="Completado">Completado</option>
+        </select><br>
+        <input type="submit" value="Agregar Proyecto">
+    </form>
+</body>
+</html>

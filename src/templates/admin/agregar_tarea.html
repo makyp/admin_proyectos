@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Tarea</title>
+</head>
+
+<body>
+    <h2>Agregar Tarea al Proyecto: {{ proyecto.nombre }}</h2>
+    <form method="post">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required><br>
+
+        <label for="descripcion">Descripción:</label>
+        <textarea id="descripcion" name="descripcion" required></textarea><br>
+
+        <label for="fechavencimiento">Fecha de Vencimiento:</label>
+        <input type="date" id="fechavencimiento" name="fechavencimiento" required><br>
+
+        <label for="miembroasignado">Asignar a:</label>
+        <select id="miembroasignado" name="miembroasignado" required>
+            {% for miembro in usuarios %}
+            <option value="{{ miembro._id }}">{{ miembro.nombre }} {{ miembro.apellido }}</option>
+            {% endfor %}
+        </select><br>
+
+        <label for="estado">Estado:</label>
+        <select id="estado" name="estado" required>
+            <option value="Por iniciar">Por iniciar</option>
+            <option value="En progreso">En progreso</option>
+            <option value="Completado">Completado</option>
+        </select><br>
+
+        <button type="submit">Agregar Tarea</button>
+    </form>
+    <br>
+    <a href="{{ url_for('ver_todas_las_tareas') }}">Volver a Tareas</a>
+</body>
+
+</html>

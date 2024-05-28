@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Todas las Tareas</title>
+</head>
+
+<body>
+    <h2>Todas las Tareas</h2>
+    <table border="1">
+        <tr>
+            <th>Proyecto</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Fecha de Vencimiento</th>
+            <th>Responsable</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+        {% for tarea in tareas %}
+        <tr>
+            <td>{{ tarea.proyecto_nombre }}</td>
+            <td>{{ tarea.nombre }}</td>
+            <td>{{ tarea.descripcion }}</td>
+            <td>{{ tarea.fechavencimiento }}</td>
+            <td>{{ tarea.miembro_nombre }}</td>
+            <td>{{ tarea.estado }}</td> 
+            <td>
+                <a href="{{ url_for('editar_tarea', id=tarea._id) }}">Editar</a>
+                <form action="{{ url_for('eliminar_tarea', id=tarea._id) }}" method="post" style="display:inline;">
+                    <button type="submit">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a href="{{ url_for('admin_proyectos') }}">Volver a Proyectos</a>
+</body>
+
+</html>

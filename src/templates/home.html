@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <style>
+        /* Estilos para el navbar */
+        .navbar {
+            overflow: hidden;
+            background-color: #333;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="{{ url_for('home') }}">Inicio</a>
+        {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('admin_proyectos') }}">Administrar Proyectos</a>
+            <a href="{{ url_for('seleccionar_proyecto') }}">Agregar Tarea</a>
+            <a href="{{ url_for('ver_todas_las_tareas') }}">Ver Tareas</a>
+            <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
+        {% elif session.get('role') == 'miembro' %}
+            <a href="{{ url_for('miembro') }}">Miembro del Equipo</a>
+            <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
+        {% endif %}
+    </div>
+    <h2>Bienvenido, {{ usuario.nombre }}</h2>
+    <p>Rol: {{ usuario.role }}</p>
+    <p>Cargo: {{ usuario.cargo }}</p>
+    <p>Habilidades: {{ usuario.habilidades | join(', ') }}</p>
+</body>
+</html>
