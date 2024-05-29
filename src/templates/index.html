@@ -2,13 +2,99 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bienvenido a Nuestro Software</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 3em;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 40px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .team-section {
+            background-color: #fff;
+            padding: 50px 20px;
+            margin-top: 50px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .team-member {
+            display: inline-block;
+            margin: 20px;
+        }
+        .team-member img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #007bff;
+        }
+        .team-member p {
+            font-size: 1.2em;
+            margin-top: 10px;
+            color: #333;
+        }
+        .login-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.2em;
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-    <h1>Bienvenido a Nuestro Software</h1>
-    <p>Este software está diseñado para la gestión de proyectos. Puedes registrarte y acceder como administrador o miembro del equipo, gestionar tus tareas, colaborar con tu equipo y mucho más.</p>
-    <a href="{{ url_for('login') }}">
-        <button>Iniciar Sesión</button>
-    </a>
+    <a href="{{ url_for('login') }}" class="login-link">Iniciar Sesión</a>
+    <div class="container">
+        <h1>Bienvenido al software de administración de proyectos</h1>
+        <p>El aplicativo es un sistema de gestión de proyectos que permite a los usuarios administrar proyectos, asignar tareas a los miembros del equipo, realizar un seguimiento del progreso de las tareas y comunicarse a través de mensajes internos.</p>
+        
+        <div class="team-section">
+            <h2>Nuestro Equipo</h2>
+            <div class="team-member">
+                <img src="{{ url_for('static', filename='images/angie.jpg') }}" alt="Miembro del Equipo 1">
+                <p>Angie Juliana Rojas Montaño</p>
+            </div>
+            <div class="team-member">
+                <img src="{{ url_for('static', filename='images/daniela.jpg') }}" alt="Miembro del Equipo 2">
+                <p>Daniela Sofia Gamboa Torres</p>
+            </div>
+            <div class="team-member">
+                <img src="{{ url_for('static', filename='images/maira.png') }}" alt="Miembro del Equipo 3">
+                <p>Maira Tatiana Quiroga Peralta</p>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuario</title>
+</head>
+<body>
+    <h1>Editar Usuario</h1>
+    <form action="{{ url_for('editar_usuario', id=usuario._id) }}" method="post">
+        <label for="nombre">Nombre:</label>
+        <input type="text" name="nombre" id="nombre" value="{{ usuario.nombre }}" required>
+        
+        <label for="apellido">Apellido:</label>
+        <input type="text" name="apellido" id="apellido" value="{{ usuario.apellido }}" required>
+        
+        <label for="correo">Correo:</label>
+        <input type="email" name="correo" id="correo" value="{{ usuario.correo }}" required>
+        
+        <label for="role">Rol:</label>
+        <select name="role" id="role" required>
+            <option value="admin" {% if usuario.role == 'admin' %}selected{% endif %}>Administrador</option>
+            <option value="miembro" {% if usuario.role == 'miembro' %}selected{% endif %}>Miembro</option>
+        </select>
+
+        <label for="cargo">Cargo:</label>
+        <input type="text" name="cargo" id="cargo" value="{{ usuario.cargo }}" required>
+        
+        <label for="habilidades">Habilidades (separadas por comas):</label>
+        <input type="text" name="habilidades" id="habilidades" value="{{ ', '.join(usuario.habilidades) }}" required>
+        
+        <button type="submit">Guardar Cambios</button>
+    </form>
+    <a href="{{ url_for('admin_usuarios') }}">Volver a Administrar Usuarios</a>
+</body>
+</html>

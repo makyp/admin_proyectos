@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Tareas{% endblock %}
+
+{% block content %}
+    <h1 class="mt-4">Mis Tareas</h1>
+    <ul class="list-group">
+        {% if tareas %}
+            {% for tarea in tareas %}
+                <li class="list-group-item">
+                    <strong>Nombre:</strong> {{ tarea.nombre }}<br>
+                    <strong>Descripción:</strong> {{ tarea.descripcion }}<br>
+                    <strong>Estado:</strong> {{ tarea.estado }}<br>
+                    <strong>Proyecto:</strong> {{ tarea.proyecto }}
+                </li>
+            {% endfor %}
+        {% else %}
+            <li class="list-group-item">No tienes ninguna tarea asignada.</li>
+        {% endif %}
+    </ul>
+{% endblock %}

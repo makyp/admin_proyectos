@@ -4,6 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from bson import ObjectId
 from config import Conexion
 from datos import *
+from datetime import datetime
+from operator import itemgetter
 
 app = Flask(__name__)
 app.secret_key = 'uhggjghlñhu'
@@ -70,14 +72,95 @@ def logout():
     session.pop('role', None)
     return redirect(url_for('login'))
 
-@app.route('/admin')
-def admin():
+@app.route('/admin_usuarios', methods=['GET', 'POST'])
+def admin_usuarios():
     if 'correo' in session and session.get('role') == 'admin':
-        return 'Bienvenido al panel de administración.'
+        usuarios = list(usuarios_collection.find())
+        return render_template('admin/admin_usuarios.html', usuarios=usuarios)
     else:
         flash('No tienes permisos para acceder a esta página.')
         return redirect(url_for('home'))
-    
+
+@app.route('/usuario/<id>/editar', methods=['GET', 'POST'])
+def editar_usuario(id):
+    if 'correo' in session and session.get('role') == 'admin':
+        usuario = usuarios_collection.find_one({'_id': ObjectId(id)})
+        if request.method == 'POST':
+            nombre = request.form['nombre']
+            apellido = request.form['apellido']
+            correo = request.form['correo']
+            role = request.form['role']
+            cargo = request.form['cargo']
+            habilidades = request.form['habilidades'].split(',')
+
+            # Actualizar información del usuario
+            usuarios_collection.update_one(
+                {'_id': ObjectId(id)},
+                {'$set': {
+                    'nombre': nombre,
+                    'apellido': apellido,
+                    'correo': correo,
+                    'role': role,
+                    'cargo': cargo,
+                    'habilidades': habilidades
+                }}
+            )
+
+            # Actualizar la información del usuario en los proyectos donde esté asignado
+            proyectos_collection.update_many(
+                {'miembros._id': ObjectId(id)},
+                {'$set': {
+                    'miembros.$.nombre': nombre,
+                    'miembros.$.apellido': apellido,
+                    'miembros.$.correo': correo
+                }}
+            )
+
+            # Actualizar la información del usuario en las tareas donde esté asignado
+            proyectos = proyectos_collection.find({'tareas.miembroasignado': ObjectId(id)})
+            for proyecto in proyectos:
+                for tarea in proyecto['tareas']:
+                    if tarea['miembroasignado'] == str(id):
+                        tarea['miembro_nombre'] = f"{nombre} {apellido}"
+                proyectos_collection.update_one(
+                    {'_id': proyecto['_id']},
+                    {'$set': {'tareas': proyecto['tareas']}}
+                )
+
+            flash('Usuario actualizado exitosamente.')
+            return redirect(url_for('admin_usuarios'))
+
+        return render_template('admin/editar_usuario.html', usuario=usuario)
+    flash('No tienes permisos para realizar esta acción.')
+    return redirect(url_for('home'))
+
+@app.route('/usuario/<id>/eliminar', methods=['POST'])
+def eliminar_usuario(id):
+    if 'correo' in session and session.get('role') == 'admin':
+        usuario = usuarios_collection.find_one({'_id': ObjectId(id)})
+        if usuario:
+            usuarios_collection.delete_one({'_id': ObjectId(id)})
+            proyectos_collection.update_many(
+                {'miembros._id': ObjectId(id)},
+                {'$pull': {'miembros': {'_id': ObjectId(id)}}}
+            )
+            proyectos = proyectos_collection.find({'tareas.miembroasignado': ObjectId(id)})
+            for proyecto in proyectos:
+                for tarea in proyecto['tareas']:
+                    if tarea['miembroasignado'] == str(id):
+                        tarea['miembroasignado'] = None
+                        tarea['miembro_nombre'] = "Sin asignar"
+                proyectos_collection.update_one(
+                    {'_id': proyecto['_id']},
+                    {'$set': {'tareas': proyecto['tareas']}}
+                )
+            flash('Usuario eliminado exitosamente.')
+        else:
+            flash('No se encontró el usuario.')
+        return redirect(url_for('admin_usuarios'))
+    flash('No tienes permisos para realizar esta acción.')
+    return redirect(url_for('home'))
+
 @app.route('/admin_proyectos', methods=['GET', 'POST'])
 def admin_proyectos():
     if 'correo' in session and session.get('role') == 'admin':
@@ -263,6 +346,22 @@ def ver_todas_las_tareas():
     flash('No tienes permisos para realizar esta acción.')
     return redirect(url_for('home'))
 
+# Ruta para ver todas las tareas
+@app.route('/tareas_general')
+def ver_tareas_general():
+    tareas = tareas_collection.find()
+    return render_template('ver_todas_las_tareas.html', tareas=tareas)
+
+@app.route('/tarea/<id>/comentar', methods=['POST'])
+def comentar_tarea(id):
+    if request.method == 'POST':
+        contenido = request.form['contenido']
+        autor = session['correo']
+        comentario = {'autor': autor, 'contenido': contenido}
+        tareas_collection.update_one({'_id': ObjectId(id)}, {'$push': {'comentarios': comentario}})
+        flash('Comentario agregado exitosamente.')
+    return redirect(url_for('ver_tareas_general'))
+
 @app.route('/tarea/<id>/editar', methods=['GET', 'POST'])
 def editar_tarea(id):
     if 'correo' in session and session.get('role') == 'admin':
@@ -333,41 +432,53 @@ def perfil():
     if 'correo' in session:
         usuario = usuarios_collection.find_one({'correo': session['correo']})
         if usuario:
-            proyectos = proyectos_collection.find({'miembros': {'$elemMatch': {'correo': session['correo']}}})
-            tareas = tareas_collection.find({'miembroasignado': usuario['_id']})
-            return render_template('perfil.html', usuario=usuario, proyectos=proyectos, tareas=tareas)
-    flash('Debes iniciar sesión para ver tu perfil.')
-    return redirect(url_for('login'))
+            proyectos = list(proyectos_collection.find({'miembros._id': usuario['_id']}))
+            
+            tareas_asignadas = []
+            for proyecto in proyectos:
+                for tarea in proyecto['tareas']:
+                    if tarea['miembroasignado'] == str(usuario['_id']):
+                        tareas_asignadas.append(tarea)
+            
+            return render_template('perfil.html', usuario=usuario, proyectos=proyectos, tareas=tareas_asignadas)
+    flash('No tienes permisos para realizar esta acción.')
+    return redirect(url_for('home'))
 
-@app.route('/tarea/<id>/comentarios', methods=['GET', 'POST'])
-def ver_comentarios(id):
-    if 'correo' in session:
-        tarea = tareas_collection.find_one({'_id': ObjectId(id)})
-        if request.method == 'POST':
-            contenido = request.form['contenido']
-            fecha = datetime.datetime.now()
-            comentario = Comentario(session['correo'], contenido, fecha)
-            tareas_collection.update_one(
-                {'_id': ObjectId(id)},
-                {'$push': {'comentarios': comentario.formato_doc()}}
-            )
-            flash('Comentario agregado exitosamente.')
-        comentarios = tarea.get('comentarios', [])
-        return render_template('comentarios.html', tarea=tarea, comentarios=comentarios)
-    flash('Debes iniciar sesión para ver los comentarios.')
-    return redirect(url_for('login'))
+from flask import request
 
 @app.route('/responder_mensaje', methods=['POST'])
 def responder_mensaje():
     if 'correo' in session:
         destinatario = request.form['destinatario']
         contenido = request.form['contenido']
-        fecha = datetime.datetime.now()
-        mensaje = Mensaje(session['correo'], destinatario, contenido, fecha)
+        mensaje_id = request.form['mensaje_id']  # ID del mensaje original
+        fecha = datetime.now()
+
+        print("ID del mensaje recibido:", mensaje_id)  # Imprimir el ID del mensaje
+
+        # Validar que el ID del mensaje sea un ObjectId válido
+        try:
+            mensaje_id = ObjectId(mensaje_id)
+        except Exception as e:
+            print("Error al convertir el ID del mensaje a ObjectId:", e)  # Imprimir el error
+            flash('ID de mensaje no válido.')
+            return redirect(url_for('ver_mensajes'))
+
+        # Crear un nuevo mensaje con la información de la respuesta
+        mensaje_respuesta = {
+            '_id': ObjectId(),
+            'remitente': session['correo'],
+            'destinatario': destinatario,
+            'contenido': contenido,
+            'fecha': fecha
+        }
+
+        # Guardar la respuesta en la base de datos
         usuarios_collection.update_one(
-            {'correo': destinatario},
-            {'$push': {'mensajes': mensaje.formato_doc()}}
+            {'correo': destinatario, 'mensajes._id': mensaje_id},
+            {'$push': {'mensajes.$.respuestas': mensaje_respuesta}}
         )
+
         flash('Respuesta enviada exitosamente.')
         return redirect(url_for('ver_mensajes'))
     flash('Debes iniciar sesión para responder mensajes.')
@@ -380,7 +491,10 @@ def enviar_mensaje():
         if request.method == 'POST':
             destinatario = request.form['destinatario']
             contenido = request.form['contenido']
-            fecha = datetime.datetime.now()
+            if destinatario == session['correo']:  # Verificar si el destinatario es el mismo que el usuario actual
+                flash('No puedes enviarte un mensaje a ti mismo.')
+                return redirect(url_for('enviar_mensaje'))  # Redirigir de nuevo a la página de envío de mensajes
+            fecha = datetime.now()
             mensaje = Mensaje(session['correo'], destinatario, contenido, fecha)
             usuarios_collection.update_one(
                 {'correo': destinatario},
@@ -402,13 +516,28 @@ def ver_mensajes():
     flash('Debes iniciar sesión para ver tus mensajes.')
     return redirect(url_for('login'))
 
-@app.route('/miembro')
-def miembro():
-    if 'correo' in session and session.get('role') == 'miembro':
-        return 'Bienvenido a la página de miembro del equipo.'
-    else:
-        flash('No tienes permisos para acceder a esta página.')
-        return redirect(url_for('home'))
+@app.route('/mis_tareas')
+def mis_tareas():
+    if 'correo' in session:
+        usuario = usuarios_collection.find_one({'correo': session['correo']})
+        if usuario:
+            proyectos = list(proyectos_collection.find({'miembros._id': usuario['_id']}))
+            
+            tareas_asignadas = []
+            for proyecto in proyectos:
+                for tarea in proyecto['tareas']:
+                    if tarea['miembroasignado'] == str(usuario['_id']):
+                        tarea_info = {
+                            'nombre': tarea['nombre'],
+                            'descripcion': tarea['descripcion'],
+                            'estado': tarea['estado'],
+                            'proyecto': proyecto['nombre']
+                        }
+                        tareas_asignadas.append(tarea_info)
+            
+            return render_template('mis_tareas.html', tareas=tareas_asignadas)
+    flash('No tienes permisos para realizar esta acción.')
+    return redirect(url_for('home'))
 
 if __name__ == '__main__':
     app.run(debug=True)

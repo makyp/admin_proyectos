@@ -1,44 +1,51 @@
-<!DOCTYPE html>
-<html lang="es">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Tarea</title>
-</head>
+{% block title %}
+Editar Tarea
+{% endblock %}
 
-<body>
-    <h2>Editar Tarea: {{ tarea.nombre }} del Proyecto: {{ proyecto.nombre }}</h2>
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Editar Tarea: {{ tarea.nombre }} del Proyecto: {{ proyecto.nombre }}</h2>
     <form method="post">
-        <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" name="nombre" value="{{ tarea.nombre }}" required><br>
+        <div class="form-group">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" value="{{ tarea.nombre }}" class="form-control" required>
+        </div>
 
-        <label for="descripcion">Descripción:</label>
-        <textarea id="descripcion" name="descripcion" required>{{ tarea.descripcion }}</textarea><br>
+        <div class="form-group">
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="descripcion" class="form-control" required>{{ tarea.descripcion }}</textarea>
+        </div>
 
-        <label for="fechavencimiento">Fecha de Vencimiento:</label>
-        <input type="date" id="fechavencimiento" name="fechavencimiento" value="{{ tarea.fechavencimiento }}" required><br>
+        <div class="form-group">
+            <label for="fechavencimiento">Fecha de Vencimiento:</label>
+            <input type="date" id="fechavencimiento" name="fechavencimiento" value="{{ tarea.fechavencimiento }}" class="form-control" required>
+        </div>
 
-        <label for="miembroasignado">Asignar a:</label>
-        <select id="miembroasignado" name="miembroasignado" required>
-            {% for miembro in miembros %}
-            <option value="{{ miembro._id }}" {% if miembro._id == tarea.miembroasignado %}selected{% endif %}>
-                {{ miembro.nombre }} {{ miembro.apellido }}
-            </option>
-            {% endfor %}
-        </select><br>
+        <div class="form-group">
+            <label for="miembroasignado">Asignar a:</label>
+            <select id="miembroasignado" name="miembroasignado" class="form-control" required>
+                {% for miembro in miembros %}
+                <option value="{{ miembro._id }}" {% if miembro._id == tarea.miembroasignado %}selected{% endif %}>
+                    {{ miembro.nombre }} {{ miembro.apellido }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
 
-        <label for="estado">Estado:</label>
-        <select id="estado" name="estado" required>
-            <option value="Por iniciar" {% if tarea.estado == 'Por iniciar' %}selected{% endif %}>Por iniciar</option>
-            <option value="En progreso" {% if tarea.estado == 'En progreso' %}selected{% endif %}>En progreso</option>
-            <option value="Completado" {% if tarea.estado == 'Completado' %}selected{% endif %}>Completado</option>
-        </select><br>
+        <div class="form-group">
+            <label for="estado">Estado:</label>
+            <select id="estado" name="estado" class="form-control" required>
+                <option value="Por iniciar" {% if tarea.estado == 'Por iniciar' %}selected{% endif %}>Por iniciar</option>
+                <option value="En progreso" {% if tarea.estado == 'En progreso' %}selected{% endif %}>En progreso</option>
+                <option value="Completado" {% if tarea.estado == 'Completado' %}selected{% endif %}>Completado</option>
+            </select>
+        </div>
 
-        <button type="submit">Actualizar Tarea</button>
+        <button type="submit" class="btn btn-primary">Actualizar Tarea</button>
     </form>
     <br>
-    <a href="{{ url_for('ver_todas_las_tareas') }}">Volver a Tareas</a>
-</body>
-
-</html>
+    <a href="{{ url_for('ver_todas_las_tareas') }}" class="btn btn-secondary">Volver a Tareas</a>
+</div>
+{% endblock %}

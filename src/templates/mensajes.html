@@ -1,48 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Mensajes</title>
-    <style>
-        .respuesta-form {
-            display: none; /* Oculta el formulario de respuesta por defecto */
-        }
+{% extends "base.html" %}
 
-        .mostrar-respuesta {
-            cursor: pointer;
-            color: blue;
-        }
-    </style>
-    <script>
-        function mostrarRespuesta(formId) {
-            var respuestaForm = document.getElementById(formId);
-            respuestaForm.style.display = 'block'; // Muestra el formulario de respuesta
-        }
-    </script>
-</head>
-<body>
+{% block title %}Mensajes{% endblock %}
+
+{% block content %}
+<style>
+    .respuesta-form {
+        display: none; /* Oculta el formulario de respuesta por defecto */
+    }
+
+    .mostrar-respuesta {
+        cursor: pointer;
+        color: blue;
+    }
+</style>
+<script>
+    function mostrarRespuesta(formId) {
+        var respuestaForm = document.getElementById(formId);
+        respuestaForm.style.display = 'block'; // Muestra el formulario de respuesta
+    }
+</script>
+<div class="container mt-4">
     <h2>Mensajes</h2>
-    <ul>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-info" role="alert">
+                <ul class="mb-0">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    {% endwith %}
+    <ul class="list-group mb-4">
         {% for mensaje in mensajes %}
-            <li>
-                <strong>De {{ mensaje.remitente }}:</strong> {{ mensaje.contenido }} <em>{{ mensaje.fecha }}</em>
+            <li class="list-group-item">
+                <div>
+                    <strong>De {{ mensaje.remitente }}:</strong> {{ mensaje.contenido }} <em>{{ mensaje.fecha }}</em>
+                </div>
                 <!-- Mostrar el botón "Responder" -->
-                <button class="mostrar-respuesta" onclick="mostrarRespuesta('respuesta-form-{{ loop.index }}')">Responder</button>
+                <button class="btn btn-link mostrar-respuesta" onclick="mostrarRespuesta('respuesta-form-{{ loop.index }}')">Responder</button>
                 <!-- Formulario de respuesta -->
-                <form id="respuesta-form-{{ loop.index }}" class="respuesta-form" action="{{ url_for('responder_mensaje') }}" method="post">
-                    <textarea name="contenido" placeholder="Escribe tu respuesta aquí..." required></textarea>
+                <form id="respuesta-form-{{ loop.index }}" class="respuesta-form mt-3" action="{{ url_for('responder_mensaje') }}" method="post">
+                    <div class="form-group">
+                        <textarea class="form-control" name="contenido" placeholder="Escribe tu respuesta aquí..." required></textarea>
+                    </div>
                     <input type="hidden" name="destinatario" value="{{ mensaje.remitente }}">
-                    <button type="submit">Enviar</button>
+                    <input type="hidden" name="mensaje_id" value="{{ mensaje['_id'] }}">
+                    <button type="submit" class="btn btn-primary">Enviar</button>
                 </form>
-            </li>
-        {% endfor %}
-        {% for respuesta in respuestas %}
-            <li>
-                <strong>Para {{ respuesta.destinatario }}:</strong> {{ respuesta.contenido }} <em>{{ respuesta.fecha }}</em>
+                <!-- Respuestas -->
+                <ul class="list-group mt-3">
+                    {% if mensaje.respuestas %}
+                        {% for respuesta in mensaje.respuestas %}
+                            <li class="list-group-item">
+                                <strong>Para {{ respuesta.destinatario }}:</strong> {{ respuesta.contenido }} <em>{{ respuesta.fecha }}</em>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
             </li>
         {% endfor %}
     </ul>
-    <a href="{{ url_for('home') }}">Volver al Inicio</a>
-</body>
-</html>
-
+    <a href="{{ url_for('home') }}" class="btn btn-secondary">Volver al Inicio</a>
+</div>
+{% endblock %}

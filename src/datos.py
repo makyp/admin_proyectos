@@ -1,3 +1,5 @@
+from bson import ObjectId
+from datetime import datetime
 class Usuario:
     def __init__(self, nombre, apellido, correo, password, role, cargo, habilidades):
         self.nombre = nombre
@@ -76,27 +78,30 @@ class Tarea:
         }
 
 class Comentario:
-    def __init__(self, autor, contenido, fecha):
-        self.autor = autor
+    def __init__(self, autor_id, contenido, fecha):
+        self.autor_id = autor_id
         self.contenido = contenido
         self.fecha = fecha
-    
+
     def formato_doc(self):
         return {
-            'autor': self.autor.formato_doc(),
+            'autor_id': self.autor_id,
             'contenido': self.contenido,
-            'fecha': self.fecha,
+            'fecha': self.fecha
         }
 
+
 class Mensaje:
-    def __init__(self, remitente, destinatario, contenido, fecha):
+    def __init__(self, remitente, destinatario, contenido, fecha=None, _id=None):
+        self._id = _id if _id else ObjectId()
         self.remitente = remitente
         self.destinatario = destinatario
         self.contenido = contenido
-        self.fecha = fecha
+        self.fecha = fecha if fecha else datetime.now()
 
     def formato_doc(self):
         return {
+            '_id': self._id,
             'remitente': self.remitente,
             'destinatario': self.destinatario,
             'contenido': self.contenido,
