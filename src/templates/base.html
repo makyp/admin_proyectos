@@ -36,22 +36,22 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 {% if session.get('role') == 'admin' %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('perfil') }}">Perfil</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_proyectos') }}">Administrar Proyectos</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_usuarios') }}">Administrar Usuarios</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('registro') }}">Agregar nuevo miembro</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('seleccionar_proyecto') }}">Agregar Tarea</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('ver_todas_las_tareas') }}">Ver Tareas</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('perfil') }}">Perfil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('ver_mensajes') }}">Ver Mensajes</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('enviar_mensaje') }}">Enviar Mensaje</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('ver_mensajes') }}">Ver Mensajes</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('mis_tareas') }}">Mis Tareas</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('ver_tareas_general') }}">Tareas y comentarios</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
                 {% elif session.get('role') == 'miembro' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('mis_tareas') }}">Mis Tareas</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('perfil') }}">Perfil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('ver_mensajes') }}">Ver Mensajes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('mis_tareas') }}">Mis Tareas</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('enviar_mensaje') }}">Enviar Mensaje</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('ver_mensajes') }}">Ver Mensajes</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('ver_tareas_general') }}">Tareas y comentarios</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
                 {% endif %}

@@ -8,6 +8,17 @@ Ver Todas las Tareas
 <div class="row">
     <div class="col-md-10 offset-md-1">
         <h2 class="text-center">Todas las Tareas</h2>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-info" role="alert">
+                    <ul>
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endwith %}
         <table class="table table-bordered">
             <thead class="thead-dark">
                 <tr>

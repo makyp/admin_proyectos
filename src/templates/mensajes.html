@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Mensajes{% endblock %}
+{% block title %}Mensajes Recibidos{% endblock %}
 
 {% block content %}
 <style>
@@ -46,7 +46,7 @@
                         <textarea class="form-control" name="contenido" placeholder="Escribe tu respuesta aquí..." required></textarea>
                     </div>
                     <input type="hidden" name="destinatario" value="{{ mensaje.remitente }}">
-                    <input type="hidden" name="mensaje_id" value="{{ mensaje['_id'] }}">
+                    <input type="hidden" name="mensaje_id" value="{{ mensaje._id }}">
                     <button type="submit" class="btn btn-primary">Enviar</button>
                 </form>
                 <!-- Respuestas -->

@@ -1,4 +1,5 @@
 import datetime
+from bson import ObjectId, errors as bson_errors
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson import ObjectId
@@ -444,56 +445,15 @@ def perfil():
     flash('No tienes permisos para realizar esta acción.')
     return redirect(url_for('home'))
 
-from flask import request
-
-@app.route('/responder_mensaje', methods=['POST'])
-def responder_mensaje():
-    if 'correo' in session:
-        destinatario = request.form['destinatario']
-        contenido = request.form['contenido']
-        mensaje_id = request.form['mensaje_id']  # ID del mensaje original
-        fecha = datetime.now()
-
-        print("ID del mensaje recibido:", mensaje_id)  # Imprimir el ID del mensaje
-
-        # Validar que el ID del mensaje sea un ObjectId válido
-        try:
-            mensaje_id = ObjectId(mensaje_id)
-        except Exception as e:
-            print("Error al convertir el ID del mensaje a ObjectId:", e)  # Imprimir el error
-            flash('ID de mensaje no válido.')
-            return redirect(url_for('ver_mensajes'))
-
-        # Crear un nuevo mensaje con la información de la respuesta
-        mensaje_respuesta = {
-            '_id': ObjectId(),
-            'remitente': session['correo'],
-            'destinatario': destinatario,
-            'contenido': contenido,
-            'fecha': fecha
-        }
-
-        # Guardar la respuesta en la base de datos
-        usuarios_collection.update_one(
-            {'correo': destinatario, 'mensajes._id': mensaje_id},
-            {'$push': {'mensajes.$.respuestas': mensaje_respuesta}}
-        )
-
-        flash('Respuesta enviada exitosamente.')
-        return redirect(url_for('ver_mensajes'))
-    flash('Debes iniciar sesión para responder mensajes.')
-    return redirect(url_for('login'))
-
-
 @app.route('/enviar_mensaje', methods=['GET', 'POST'])
 def enviar_mensaje():
     if 'correo' in session:
         if request.method == 'POST':
             destinatario = request.form['destinatario']
             contenido = request.form['contenido']
-            if destinatario == session['correo']:  # Verificar si el destinatario es el mismo que el usuario actual
+            if destinatario == session['correo']:
                 flash('No puedes enviarte un mensaje a ti mismo.')
-                return redirect(url_for('enviar_mensaje'))  # Redirigir de nuevo a la página de envío de mensajes
+                return redirect(url_for('enviar_mensaje'))
             fecha = datetime.now()
             mensaje = Mensaje(session['correo'], destinatario, contenido, fecha)
             usuarios_collection.update_one(
@@ -514,6 +474,33 @@ def ver_mensajes():
         mensajes = usuario.get('mensajes', [])
         return render_template('mensajes.html', mensajes=mensajes)
     flash('Debes iniciar sesión para ver tus mensajes.')
+    return redirect(url_for('login'))
+
+@app.route('/responder_mensaje', methods=['POST'])
+def responder_mensaje():
+    if 'correo' in session:
+        destinatario = request.form['destinatario']
+        contenido = request.form['contenido']
+        mensaje_id = request.form['mensaje_id']
+        fecha = datetime.now()
+        respuesta = {
+            'remitente': session['correo'],
+            'destinatario': destinatario,
+            'contenido': contenido,
+            'fecha': fecha
+        }
+        try:
+            # Asegurarse de que mensaje_id sea un ObjectId válido
+            mensaje_id_obj = ObjectId(mensaje_id)
+            usuarios_collection.update_one(
+                {'correo': destinatario, 'mensajes._id': mensaje_id_obj},
+                {'$push': {'mensajes.$.respuestas': respuesta}}
+            )
+            flash('Respuesta enviada exitosamente.')
+        except bson_errors.InvalidId:
+            flash('Error al enviar la respuesta: ID de mensaje inválido.')
+        return redirect(url_for('ver_mensajes'))
+    flash('Debes iniciar sesión para responder mensajes.')
     return redirect(url_for('login'))
 
 @app.route('/mis_tareas')
